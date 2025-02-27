@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -10,6 +13,7 @@ android {
     namespace = "com.example.mvidecomposetraining"
     compileSdk = 35
 
+
     defaultConfig {
         applicationId = "com.example.mvidecomposetraining"
         minSdk = 24
@@ -21,9 +25,18 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+
+        val localPropertiesFile: File = rootProject.file("local.properties")
+        val localProperties = Properties()
+        localProperties.load(FileInputStream(localPropertiesFile))
+
+        buildConfigField("String", "API_KEY", localProperties["apiKey"].toString())
+
     }
 
     buildTypes {
+
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -42,6 +55,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -51,6 +65,7 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
 }
 
 dependencies {
