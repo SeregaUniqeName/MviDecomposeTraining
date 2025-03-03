@@ -8,4 +8,5 @@ class SearchCityUseCase @Inject constructor(
 ) {
 
     suspend fun search(query: String) = repository.search(query)
+    
 }

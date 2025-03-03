@@ -1,4 +1,4 @@
-package com.example.mvidecomposetraining.data.api
+package com.example.mvidecomposetraining.data.remote.api
 
 import com.example.mvidecomposetraining.BuildConfig
 import okhttp3.OkHttpClient

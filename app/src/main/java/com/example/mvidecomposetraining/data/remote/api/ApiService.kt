@@ -1,8 +1,8 @@
-package com.example.mvidecomposetraining.data.api
+package com.example.mvidecomposetraining.data.remote.api
 
-import com.example.mvidecomposetraining.data.models.CityDto
-import com.example.mvidecomposetraining.data.models.WeatherCurrentDto
-import com.example.mvidecomposetraining.data.models.WeatherForecastDto
+import com.example.mvidecomposetraining.data.remote.models.CityDto
+import com.example.mvidecomposetraining.data.remote.models.WeatherCurrentDto
+import com.example.mvidecomposetraining.data.remote.models.WeatherForecastDto
 import retrofit2.http.GET
 import retrofit2.http.Query
 
