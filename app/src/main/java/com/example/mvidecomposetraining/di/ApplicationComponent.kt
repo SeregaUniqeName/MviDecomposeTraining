@@ -5,7 +5,7 @@ import com.example.mvidecomposetraining.di.annotations.ApplicationScope
 import dagger.BindsInstance
 import dagger.Component
 
-@Component(modules = [DataModule::class])
+@Component(modules = [DataModule::class, PresentationModule::class])
 @ApplicationScope
 interface ApplicationComponent {
 
