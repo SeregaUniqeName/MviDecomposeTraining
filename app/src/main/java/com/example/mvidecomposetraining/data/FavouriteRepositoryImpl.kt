@@ -11,13 +11,11 @@ import javax.inject.Inject
 
 class FavouriteRepositoryImpl @Inject constructor(
     private val favouriteCitiesDao: FavouriteCitiesDao,
+) : FavouriteRepository {
 
-    ): FavouriteRepository {
+    override val favouriteCities: Flow<List<City>> = favouriteCitiesDao.getFavouriteCities().map { it.toEntities() }
 
-    override val favouriteCities: Flow<List<City>> = favouriteCitiesDao.getFavouriteCities()
-        .map { it.toEntities() }
-
-    override fun observeIsFavourite(cityId: Int)= favouriteCitiesDao.observeIsFavourite(cityId)
+    override fun observeIsFavourite(cityId: Int) = favouriteCitiesDao.observeIsFavourite(cityId)
 
     override suspend fun addToFavourite(city: City) = favouriteCitiesDao.addToFavourite(city.toDbModel())
 

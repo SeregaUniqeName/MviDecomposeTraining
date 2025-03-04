@@ -1,10 +1,10 @@
 package com.example.mvidecomposetraining.domain.useCases.details
 
-import com.example.mvidecomposetraining.domain.Repository
+import com.example.mvidecomposetraining.domain.WeatherRepository
 import javax.inject.Inject
 
 class GetWeatherAndForecastUseCase @Inject constructor(
-    private val repository: Repository
+    private val repository: WeatherRepository
 ) {
 
     suspend fun getWeather(cityId: Int) = repository.getWeather(cityId)
