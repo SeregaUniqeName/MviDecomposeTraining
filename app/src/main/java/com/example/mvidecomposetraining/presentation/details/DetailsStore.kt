@@ -53,7 +53,7 @@ interface DetailsStore : Store<Intent, State, Label> {
 
 }
 
-internal class DetailsStoreFactory @Inject constructor(
+class DetailsStoreFactory @Inject constructor(
     private val storeFactory: StoreFactory,
     private val getWeatherAndForecastUseCase: GetWeatherAndForecastUseCase,
     private val changeFavouriteCityUseCase: ChangeFavouriteCityUseCase,
