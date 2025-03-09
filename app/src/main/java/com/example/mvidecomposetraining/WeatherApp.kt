@@ -12,4 +12,5 @@ class WeatherApp : Application() {
         super.onCreate()
         component = DaggerApplicationComponent.factory().create(this)
     }
+
 }
