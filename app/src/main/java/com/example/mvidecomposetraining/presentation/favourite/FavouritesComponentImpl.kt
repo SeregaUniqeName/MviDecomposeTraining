@@ -18,32 +18,30 @@ class FavouritesComponentImpl @AssistedInject constructor(
     @Assisted("onCityItemClicked") private val onCityItemClicked: (City) -> Unit,
     @Assisted("onAddFavouriteClicked") private val onAddFavouriteClicked: () -> Unit,
     @Assisted("onSearchClicked") private val onSearchClicked: () -> Unit,
-    @Assisted("componentContext") componentContext: ComponentContext,
+    @Assisted("componentContext") componentContext: ComponentContext
 ) : FavouritesComponent, ComponentContext by componentContext {
 
-    private val store = instanceKeeper.getStore {
-        favouriteStoreFactory.create()
-    }
-
+    private val store = instanceKeeper.getStore { favouriteStoreFactory.create() }
     private val scope = componentScope()
 
     init {
         scope.launch {
             store.labels.collect {
-                when(it){
+                when (it) {
                     is FavouriteStore.Label.CityItemClicked -> {
                         onCityItemClicked(it.city)
                     }
+
                     FavouriteStore.Label.ClickSearch -> {
                         onSearchClicked()
                     }
+
                     FavouriteStore.Label.ClickToFavourite -> {
                         onAddFavouriteClicked()
                     }
                 }
             }
         }
-
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -53,11 +51,11 @@ class FavouritesComponentImpl @AssistedInject constructor(
         store.accept(FavouriteStore.Intent.ClickSearch)
     }
 
-    override fun onClickAddFavourite() {
+    override fun onCLickAddFavourite() {
         store.accept(FavouriteStore.Intent.ClickAddToFavourite)
     }
 
-    override fun onCityItemClicked(city: City) {
+    override fun onCityItemClick(city: City) {
         store.accept(FavouriteStore.Intent.CityItemClicked(city))
     }
 

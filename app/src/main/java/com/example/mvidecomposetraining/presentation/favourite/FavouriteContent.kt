@@ -73,12 +73,12 @@ fun FavouriteContent(component: FavouritesComponent) {
             CityCard(
                 cityItem = item,
                 index = index,
-                onClick = { component.onCityItemClicked(item.city) }
+                onClick = { component.onCityItemClick(item.city) }
             )
         }
         item {
             AddFavouriteCityCard(
-                onClick = { component.onClickAddFavourite() }
+                onClick = { component.onCLickAddFavourite() }
             )
         }
     }
@@ -121,7 +121,7 @@ private fun CityCard(
                 .clickable { onClick() }
                 .padding(24.dp)
         ) {
-            when (val weatherState = cityItem.state) {
+            when (val weatherState = cityItem.weatherState) {
                 FavouriteStore.State.WeatherState.Error -> {}
 
                 FavouriteStore.State.WeatherState.Initial -> {}
@@ -138,7 +138,7 @@ private fun CityCard(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .padding(bottom = 24.dp),
-                        text = weatherState.temp.tempToFormattedString(),
+                        text = weatherState.tempC.tempToFormattedString(),
                         color = MaterialTheme.colorScheme.background,
                         style = MaterialTheme.typography.bodyLarge.copy(fontSize = 48.sp)
                     )

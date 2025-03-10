@@ -23,16 +23,15 @@ interface FavouriteStore : Store<Intent, State, Label> {
         data object ClickAddToFavourite : Intent
 
         data class CityItemClicked(val city: City) : Intent
-
     }
 
     data class State(
-        val cityItems: List<CityItem>,
+        val cityItems: List<CityItem>
     ) {
 
         data class CityItem(
             val city: City,
-            val state: WeatherState,
+            val weatherState: WeatherState
         )
 
         sealed interface WeatherState {
@@ -44,8 +43,8 @@ interface FavouriteStore : Store<Intent, State, Label> {
             data object Error : WeatherState
 
             data class Loaded(
-                val temp: Float,
-                val iconUrl: String,
+                val tempC: Float,
+                val iconUrl: String
             ) : WeatherState
         }
     }
@@ -63,41 +62,39 @@ interface FavouriteStore : Store<Intent, State, Label> {
 class FavouriteStoreFactory @Inject constructor(
     private val storeFactory: StoreFactory,
     private val getFavouriteCitiesUseCase: GetFavouriteCitiesUseCase,
-    private val getWeatherAndForecastUseCase: GetWeatherAndForecastUseCase
+    private val getCurrentWeatherUseCase: GetWeatherAndForecastUseCase
 ) {
 
-    fun create(): FavouriteStore = object : FavouriteStore,
-        Store<Intent, State, Label> by storeFactory
-            .create(
-                name = "FavouriteStore",
-                initialState = State(listOf()),
-                bootstrapper = BootstrapperImpl(),
-                executorFactory = ::ExecutorImpl
-            ) {}
+    fun create(): FavouriteStore =
+        object : FavouriteStore, Store<Intent, State, Label> by storeFactory.create(
+            name = "FavouriteStore",
+            initialState = State(listOf()),
+            bootstrapper = BootstrapperImpl(),
+            executorFactory = ::ExecutorImpl,
+            reducer = ReducerImpl
+        ) {}
 
     private sealed interface Action {
-        data class FavouriteCitiesLoaded(
-            val cities: List<City>
-        ) : Action
+
+        data class FavouriteCitiesLoaded(val cities: List<City>) : Action
     }
 
     private sealed interface Msg {
-        data class FavouriteCitiesLoaded(
-            val cities: List<City>
-        ) : Msg
+
+        data class FavouriteCitiesLoaded(val cities: List<City>) : Msg
 
         data class WeatherLoaded(
-            val citiId: Int,
-            val temp: Float,
-            val iconUrl: String
+            val cityId: Int,
+            val tempC: Float,
+            val conditionIconUrl: String
         ) : Msg
 
-        data class WeatherLoadedError(
-            val citiId: Int
+        data class WeatherLoadingError(
+            val cityId: Int
         ) : Msg
 
         data class WeatherIsLoading(
-            val citiId: Int
+            val cityId: Int
         ) : Msg
     }
 
@@ -112,6 +109,21 @@ class FavouriteStoreFactory @Inject constructor(
     }
 
     private inner class ExecutorImpl : CoroutineExecutor<Intent, Action, State, Msg, Label>() {
+        override fun executeIntent(intent: Intent, getState: () -> State) {
+            when (intent) {
+                is Intent.CityItemClicked -> {
+                    publish(Label.CityItemClicked(intent.city))
+                }
+
+                Intent.ClickSearch -> {
+                    publish(Label.ClickSearch)
+                }
+
+                Intent.ClickAddToFavourite -> {
+                    publish(Label.ClickToFavourite)
+                }
+            }
+        }
 
         override fun executeAction(action: Action, getState: () -> State) {
             when (action) {
@@ -130,91 +142,75 @@ class FavouriteStoreFactory @Inject constructor(
         private suspend fun loadWeatherForCity(city: City) {
             dispatch(Msg.WeatherIsLoading(city.id))
             try {
-                val weather = getWeatherAndForecastUseCase.getWeather(city.id)
+                val weather = getCurrentWeatherUseCase.getWeather(city.id)
                 dispatch(
                     Msg.WeatherLoaded(
-                        citiId = city.id,
-                        temp = weather.tempC,
-                        iconUrl = weather.condition
+                        cityId = city.id,
+                        tempC = weather.tempC,
+                        conditionIconUrl = weather.conditionUrl
                     )
                 )
             } catch (e: Exception) {
-                dispatch(Msg.WeatherLoadedError(citiId = city.id))
-            }
-        }
-
-        override fun executeIntent(intent: Intent, getState: () -> State) {
-            when (intent) {
-                is Intent.CityItemClicked -> {
-                    publish(Label.CityItemClicked(intent.city))
-                }
-
-                Intent.ClickSearch -> {
-                    publish(Label.ClickSearch)
-                }
-
-                Intent.ClickAddToFavourite -> {
-                    publish(Label.ClickToFavourite)
-                }
+                dispatch(
+                    Msg.WeatherLoadingError(city.id)
+                )
             }
         }
     }
 
-    private class ReducerImpl : Reducer<State, Msg> {
-        override fun State.reduce(msg: Msg) =
-            when (msg) {
-                is Msg.FavouriteCitiesLoaded -> {
-                    copy(
-                        cityItems = msg.cities.map {
-                            State.CityItem(
-                                city = it,
-                                state = State.WeatherState.Initial
-                            )
-                        }
-                    )
-                }
-
-                is Msg.WeatherIsLoading -> {
-                    copy(
-                        cityItems = cityItems.map {
-                            if (it.city.id == msg.citiId) {
-                                it.copy(
-                                    state = State.WeatherState.Loading
-                                )
-                            } else {
-                                it
-                            }
-                        }
-                    )
-                }
-
-                is Msg.WeatherLoaded -> {
-                    copy(
-                        cityItems = cityItems.map {
-                            if (it.city.id == msg.citiId) {
-                                it.copy(
-                                    state = State.WeatherState.Loaded(msg.temp, msg.iconUrl)
-                                )
-                            } else {
-                                it
-                            }
-                        }
-                    )
-                }
-
-                is Msg.WeatherLoadedError -> {
-                    copy(
-                        cityItems = cityItems.map {
-                            if (it.city.id == msg.citiId) {
-                                it.copy(
-                                    state = State.WeatherState.Error
-                                )
-                            } else {
-                                it
-                            }
-                        }
-                    )
-                }
+    private object ReducerImpl : Reducer<State, Msg> {
+        override fun State.reduce(msg: Msg): State = when (msg) {
+            is Msg.FavouriteCitiesLoaded -> {
+                copy(
+                    cityItems = msg.cities.map {
+                        State.CityItem(
+                            city = it,
+                            weatherState = State.WeatherState.Initial
+                        )
+                    }
+                )
             }
+
+            is Msg.WeatherIsLoading -> {
+                copy(
+                    cityItems = cityItems.map {
+                        if (it.city.id == msg.cityId) {
+                            it.copy(weatherState = State.WeatherState.Loading)
+                        } else {
+                            it
+                        }
+                    }
+                )
+            }
+
+            is Msg.WeatherLoaded -> {
+                copy(
+                    cityItems = cityItems.map {
+                        if (it.city.id == msg.cityId) {
+                            it.copy(
+                                weatherState = State.WeatherState.Loaded(
+                                    msg.tempC,
+                                    msg.conditionIconUrl
+                                )
+                            )
+                        } else {
+                            it
+                        }
+                    }
+                )
+            }
+
+            is Msg.WeatherLoadingError -> {
+                copy(
+                    cityItems = cityItems.map {
+                        if (it.city.id == msg.cityId) {
+                            it.copy(weatherState = State.WeatherState.Error)
+                        } else {
+                            it
+                        }
+                    }
+                )
+            }
+        }
     }
 }
